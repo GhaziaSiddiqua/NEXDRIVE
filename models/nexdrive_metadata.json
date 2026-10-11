@@ -1,0 +1,26 @@
+{
+    "project": "NEXDRIVE",
+    "model_type": "Mode-aware Isolation Forest",
+    "training_rows_original": 118477,
+    "training_rows_unique": 27820,
+    "test_rows_unique": 7558,
+    "sensor_features": [
+        "LOAD_PCT",
+        "ECT",
+        "MAP",
+        "RPM",
+        "VSS",
+        "IAT",
+        "MAF",
+        "FRP",
+        "BARO",
+        "VPWR",
+        "AAT"
+    ],
+    "mode_values": [
+        0,
+        1,
+        2
+    ],
+    "output_meaning": "Unusual sensor pattern, not a confirmed mechanical fault"
+}

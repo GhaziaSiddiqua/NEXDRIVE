@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXDRIVE — Vehicle Intelligence Systems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07090C;
+  --surface: #0D1218;
+  --surface-2: #111923;
+  --border: #202B35;
+  --text: #F1F5F8;
+  --text-muted: #8997A4;
+  --cyan: #54E8F2;
+  --blue: #378DFF;
+  --green: #55D6A3;
+  --red: #FF5C70;
+  --amber: #E8B66A;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── LAYOUT ─── */
+.app {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 100;
+}
+
+.sidebar-brand {
+  padding: 1.5rem 1.25rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-brand .logo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
+  color: var(--text);
+}
+
+.sidebar-brand .logo span { color: var(--cyan); }
+
+.sidebar-brand .sub {
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.nav {
+  flex: 1;
+  padding: 1.25rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s, background 0.2s;
+}
+
+.nav a:hover { color: var(--text); background: rgba(84,232,242,0.04); }
+
+.nav a.active {
+  color: var(--cyan);
+  background: rgba(84,232,242,0.08);
+}
+
+.nav a svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  flex-shrink: 0;
+}
+
+.engine-status {
+  margin: 0.75rem;
+  padding: 1rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.engine-status h4 {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+
+.engine-status .line {
+  font-size: 0.75rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+}
+
+.engine-status .line::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--cyan);
+  flex-shrink: 0;
+}
+
+/* ─── MAIN ─── */
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ─── TOP BAR ─── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.75rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.topbar-left .wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+}
+
+.topbar-left .wordmark span { color: var(--cyan); }
+
+.topbar-left .subtitle {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.api-status {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.api-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  transition: background 0.3s;
+}
+
+.api-dot.connected { background: var(--green); }
+.api-dot.disconnected { background: var(--red); }
+
+.clock {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ─── CONTENT ─── */
+.content {
+  padding: 0 0 4rem;
+}
+
+/* ─── HERO ─── */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 2rem;
+  padding: 3rem 2.5rem 2.5rem;
+  min-height: 520px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 50%, rgba(84,232,242,0.06) 0%, transparent 60%),
+    linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(32,43,53,0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(32,43,53,0.4) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 70% at 70% 50%, black 20%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+}
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 4.2vw, 3.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.25rem;
+}
+
+.hero h1 .accent { color: var(--cyan); }
+
+.hero-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  max-width: 420px;
+  margin-bottom: 2rem;
+  line-height: 1.65;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.4rem;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--cyan);
+  color: #07090C;
+}
+
+.btn-primary:hover {
+  background: #6ef0f8;
+  box-shadow: 0 0 24px rgba(84,232,242,0.25);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn-secondary:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ─── CAR STAGE ─── */
+.hero-right {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.car-stage {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 16/10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.car-img {
+  width: 100%;
+  height: auto;
+  max-height: 380px;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.55));
+  position: relative;
+  z-index: 3;
+}
+
+.car-floor {
+  position: absolute;
+  bottom: 8%;
+  left: 10%;
+  right: 10%;
+  height: 18px;
+  background: radial-gradient(ellipse, rgba(84,232,242,0.18) 0%, transparent 70%);
+  filter: blur(8px);
+  z-index: 1;
+}
+
+.scan-beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, var(--cyan), transparent);
+  opacity: 0.35;
+  animation: scan 6s ease-in-out infinite;
+  z-index: 4;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  0%, 100% { left: 5%; opacity: 0; }
+  10% { opacity: 0.4; }
+  50% { left: 90%; opacity: 0.35; }
+  90% { opacity: 0.4; }
+}
+
+.tech-label {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 5;
+}
+
+.tech-label::before {
+  content: '';
+  width: 12px;
+  height: 1px;
+  background: var(--cyan);
+  opacity: 0.6;
+}
+
+.tech-label.tl1 { top: 12%; left: 0; }
+.tech-label.tl2 { top: 28%; right: 0; flex-direction: row-reverse; }
+.tech-label.tl2::before { order: 1; }
+.tech-label.tl3 { bottom: 22%; left: 2%; }
+
+.contour {
+  position: absolute;
+  border: 1px solid rgba(84,232,242,0.15);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.contour.c1 { top: 8%; left: 8%; width: 28%; height: 22%; }
+.contour.c2 { bottom: 18%; right: 6%; width: 22%; height: 18%; }
+
+/* ─── SECTIONS ─── */
+.section {
+  padding: 2.5rem 2.5rem 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.section-title span { color: var(--cyan); }
+
+/* ─── TELEMETRY ─── */
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.35rem;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.metric-card:hover { border-color: rgba(84,232,242,0.3); }
+
+.metric-card .label {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.metric-card .value {
+  font-family: var(--font-mono);
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.metric-card .unit {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: 0.25rem;
+}
+
+.metric-card .feature-name {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--cyan);
+  opacity: 0.7;
+  margin-top: 0.6rem;
+}
+
+.metric-card .indicator {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.1rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  opacity: 0.5;
+}
+
+/* ─── DIAGNOSTIC WORKSPACE ─── */
+.workspace {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 1rem 1.35rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-header h3 {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.panel-body { padding: 1.35rem; }
+
+/* Mode selector */
+.mode-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 0.7rem 0.5rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.mode-btn:hover { border-color: rgba(84,232,242,0.4); color: var(--text); }
+
+.mode-btn.active {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: rgba(84,232,242,0.08);
+}
+
+.mode-btn .mode-id {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  opacity: 0.6;
+  margin-top: 0.15rem;
+}
+
+/* Form grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-group label {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.form-group .feature-tag {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--cyan);
+  opacity: 0.65;
+  margin-left: 0.3rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.form-group input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.75rem;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 2px rgba(84,232,242,0.12);
+}
+
+.form-group input:invalid:not(:placeholder-shown) {
+  border-color: var(--red);
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.preset-select {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.85rem;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  outline: none;
+  cursor: pointer;
+  min-width: 160px;
+}
+
+.preset-select:focus { border-color: var(--cyan); }
+
+.fault-select { color: #ff8a7a; border-color: rgba(255,107,90,0.35); }
+.fault-select:focus { border-color: #ff6b5a; }
+@keyframes faultFlash {
+  0%   { box-shadow: 0 0 0 0 rgba(255,107,90,0.8); border-color: #ff6b5a; }
+  100% { box-shadow: 0 0 0 10px rgba(255,107,90,0); border-color: #ff6b5a; }
+}
+.fault-changed { animation: faultFlash 0.9s ease-out 2; border-color: #ff6b5a !important; }
+
+/* AI Result Panel */
+.result-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.result-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem 1.5rem;
+  min-height: 280px;
+}
+
+.result-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--border);
+}
+
+.result-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.result-state.ready .result-icon { color: var(--text-muted); }
+.result-state.normal .result-icon {
+  color: var(--green);
+  border-color: rgba(85,214,163,0.35);
+  background: rgba(85,214,163,0.08);
+}
+.result-state.anomaly .result-icon {
+  color: var(--red);
+  border-color: rgba(255,92,112,0.35);
+  background: rgba(255,92,112,0.08);
+}
+.result-state.error .result-icon {
+  color: var(--amber);
+  border-color: rgba(232,182,106,0.35);
+  background: rgba(232,182,106,0.08);
+}
+
+.result-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.6rem;
+}
+
+.result-state.normal .result-title { color: var(--green); }
+.result-state.anomaly .result-title { color: var(--red); }
+.result-state.error .result-title { color: var(--amber); }
+
+.result-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 280px;
+  line-height: 1.6;
+}
+
+.result-meta {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  width: 100%;
+  max-width: 280px;
+  text-align: left;
+}
+
+.result-meta .row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.result-meta .row span:first-child { color: var(--text-muted); }
+.result-meta .row span:last-child {
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+
+.loading-spinner {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--border);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── SCAN HISTORY ─── */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.85rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+}
+
+.history-item .ts {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.history-item .mode-badge {
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.history-item .classification {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.history-item .classification.normal { color: var(--green); }
+.history-item .classification.anomaly { color: var(--red); }
+.history-item .classification.fail { color: var(--amber); }
+
+.history-item .score {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.empty-state {
+  padding: 2.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* ─── FOOTER NOTE ─── */
+.disclaimer {
+  margin: 2.5rem 2.5rem 0;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.disclaimer strong { color: var(--text); }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 1100px) {
+  .telemetry-grid { grid-template-columns: repeat(2, 1fr); }
+  .workspace { grid-template-columns: 1fr; }
+  .hero { grid-template-columns: 1fr; gap: 1.5rem; }
+  .hero-right { order: -1; max-height: 320px; }
+  .car-img { max-height: 280px; }
+}
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar {
+    position: fixed;
+    left: -240px;
+    transition: left 0.3s;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+  }
+  .sidebar.open { left: 0; }
+  .topbar { padding: 0.75rem 1rem; }
+  .section { padding: 1.75rem 1.25rem 0; }
+  .hero { padding: 2rem 1.25rem; min-height: auto; }
+  .form-grid { grid-template-columns: 1fr 1fr; }
+  .history-item {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .mobile-toggle {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .telemetry-grid { grid-template-columns: 1fr 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 2rem; }
+  .mode-group { flex-direction: column; }
+}
+
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+}
+
+.mobile-toggle svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 90;
+}
+
+.overlay.show { display: block; }
+
+/* ===== Live gauge cluster ===== */
+.gauge-cluster {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+.gauge-card {
+  position: relative;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 12px 14px;
+  text-align: center;
+  overflow: hidden;
+  transition: border-color .3s, box-shadow .3s, transform .3s;
+}
+.gauge-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 85%, var(--gc, rgba(84,232,242,.14)), transparent 65%);
+  opacity: .9; pointer-events: none;
+}
+.gauge-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(84,232,242,.45);
+  box-shadow: 0 10px 30px rgba(84,232,242,.08);
+}
+.gauge-svg { width: 100%; max-width: 220px; height: auto; display: block; margin: 0 auto; overflow: visible; }
+.g-track { fill: none; stroke: #1a2430; stroke-width: 10; stroke-linecap: round; }
+.g-arc {
+  fill: none; stroke: var(--gcol, var(--cyan)); stroke-width: 10; stroke-linecap: round;
+  stroke-dasharray: 251.33; stroke-dashoffset: 251.33;
+  transition: stroke-dashoffset 1s cubic-bezier(.22,1,.36,1), stroke .4s;
+  filter: drop-shadow(0 0 6px var(--gcol, var(--cyan)));
+}
+.g-tick { stroke: #3a4755; stroke-width: 1.5; }
+.g-needle {
+  stroke: var(--text); stroke-width: 2.5; stroke-linecap: round;
+  transform-origin: 100px 100px; transform: rotate(-90deg);
+  transition: transform 1s cubic-bezier(.22,1,.36,1);
+}
+.g-hub { fill: var(--bg); stroke: var(--gcol, var(--cyan)); stroke-width: 2.5; }
+.g-readout { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--text); margin-top: -4px; position: relative; }
+.g-readout small { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-left: 4px; font-weight: 400; }
+.g-name { font-family: var(--font-mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; position: relative; }
+@media (max-width: 1100px) { .gauge-cluster { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .gauge-cluster { grid-template-columns: 1fr; } }
+</style>
+
+</head>
+<body>
+<div class="overlay" id="overlay"></div>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">NEX<span>DRIVE</span></div>
+      <div class="sub">Vehicle Intelligence</div>
+    </div>
+    <nav class="nav">
+      <a href="#overview" class="active" data-section="overview">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Overview
+      </a>
+      <a href="#telemetry" data-section="telemetry">
+        <svg viewBox="0 0 24 24"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+        Telemetry
+      </a>
+      <a href="#diagnostics" data-section="diagnostics">
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        Diagnostics
+      </a>
+      <a href="#analysis" data-section="analysis">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        AI Analysis
+      </a>
+      <a href="#history" data-section="history">
+        <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+        Scan History
+      </a>
+    </nav>
+    <div class="engine-status">
+      <h4>AI Engine Status</h4>
+      <div class="line">Mode-aware Isolation Forest</div>
+      <div class="line">11 sensor channels</div>
+      <div class="line">Local inference API</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-toggle" id="menuToggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+        <span class="wordmark">NEX<span>DRIVE</span></span>
+        <span class="subtitle">Vehicle Intelligence Systems</span>
+      </div>
+      <div class="topbar-right">
+        <div class="api-status">
+          <span class="api-dot" id="apiDot"></span>
+          <span id="apiLabel">Checking…</span>
+        </div>
+        <div class="clock" id="clock"></div>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- HERO -->
+      <section class="hero" id="overview">
+        <div class="hero-left">
+          <div class="eyebrow">NEXDRIVE / Vehicle Intelligence</div>
+          <h1>INTELLIGENCE<br>BEHIND<br><span class="accent">EVERY DRIVE.</span></h1>
+          <p class="hero-desc">AI-powered vehicle monitoring that analyses sensor behaviour, learns operating patterns, and identifies deviations from a vehicle's learned baseline.</p>
+          <div class="hero-actions">
+            <a href="#diagnostics" class="btn btn-primary">Initialize Diagnostics</a>
+            <a href="#telemetry" class="btn btn-secondary">Explore Telemetry</a>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="car-stage">
+            <!-- Realistic sports car: high-quality external render with graceful fallback -->
+            <img
+              class="car-img"
+              id="carImage"
+              src="/static/bmw.jpeg"
+              alt="NEXDRIVE BMW M-series coupe — front view"
+              onerror="this.onerror=null; this.src='data:image/svg+xml,'+encodeURIComponent(document.getElementById('carFallback').innerHTML.trim())"
+            >
+            <div class="car-floor"></div>
+            <div class="scan-beam"></div>
+            <div class="contour c1"></div>
+            <div class="contour c2"></div>
+            <div class="tech-label tl1">System 01 / Powertrain</div>
+            <div class="tech-label tl2">Live Sensor Monitoring</div>
+            <div class="tech-label tl3">Local AI Inference</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Hidden SVG fallback for car (detailed silhouette) -->
+      <script type="text/plain" id="carFallback">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+  <defs>
+    <linearGradient id="body" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a323c"/>
+      <stop offset="40%" stop-color="#1a2028"/>
+      <stop offset="100%" stop-color="#0e131a"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3a4a5a"/>
+      <stop offset="100%" stop-color="#1a2530"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <ellipse cx="400" cy="340" rx="280" ry="18" fill="#54E8F2" opacity="0.12"/>
+  <!-- Body -->
+  <path d="M120 260 C140 220 180 180 260 165 L340 155 L480 150 L580 160 L660 190 L700 230 L710 260 L700 280 L120 280 Z" fill="url(#body)" stroke="#54E8F2" stroke-width="1" opacity="0.9"/>
+  <!-- Cabin glass -->
+  <path d="M280 168 L360 158 L470 155 L540 168 L520 210 L300 215 Z" fill="url(#glass)" stroke="#54E8F2" stroke-width="0.5" opacity="0.7"/>
+  <!-- Wheels -->
+  <circle cx="230" cy="275" r="42" fill="#0a0c10" stroke="#303840" stroke-width="3"/>
+  <circle cx="230" cy="275" r="22" fill="#151a20" stroke="#54E8F2" stroke-width="1" opacity="0.5"/>
+  <circle cx="580" cy="275" r="42" fill="#0a0c10" stroke="#303840" stroke-width="3"/>
+  <circle cx="580" cy="275" r="22" fill="#151a20" stroke="#54E8F2" stroke-width="1" opacity="0.5"/>
+  <!-- Headlight accent -->
+  <ellipse cx="680" cy="220" rx="18" ry="8" fill="#54E8F2" opacity="0.7" filter="url(#glow)"/>
+  <!-- Accent lines -->
+  <path d="M200 250 L650 240" stroke="#54E8F2" stroke-width="0.8" opacity="0.35"/>
+  <path d="M260 200 L500 190" stroke="#54E8F2" stroke-width="0.6" opacity="0.25"/>
+</svg>
+      </script>
+
+      <!-- TELEMETRY -->
+      <section class="section" id="telemetry">
+        <div class="section-header">
+          <h2 class="section-title"><span>01</span> — Current Input Values</h2>
+        </div>
+        <div class="telemetry-grid">
+          <div class="metric-card">
+            <div class="label">Engine Speed</div>
+            <div class="value"><span id="tele-RPM">0</span><span class="unit">RPM</span></div>
+            <div class="feature-name">RPM</div>
+            <div class="indicator"></div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Vehicle Speed</div>
+            <div class="value"><span id="tele-VSS">0</span><span class="unit">km/h</span></div>
+            <div class="feature-name">VSS</div>
+            <div class="indicator"></div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Engine Load</div>
+            <div class="value"><span id="tele-LOAD_PCT">0</span><span class="unit">%</span></div>
+            <div class="feature-name">LOAD_PCT</div>
+            <div class="indicator"></div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Coolant Temp</div>
+            <div class="value"><span id="tele-ECT">0</span><span class="unit">°C</span></div>
+            <div class="feature-name">ECT</div>
+            <div class="indicator"></div>
+          </div>
+        </div>
+        <div class="gauge-cluster" id="gaugeCluster">
+          <div class="gauge-card" data-gauge="RPM">
+            <svg class="gauge-svg" viewBox="0 0 200 118">
+              <g class="g-ticks"></g>
+              <path class="g-track" d="M 20 100 A 80 80 0 0 1 180 100"/>
+              <path class="g-arc" d="M 20 100 A 80 80 0 0 1 180 100"/>
+              <line class="g-needle" x1="100" y1="100" x2="100" y2="34"/>
+              <circle class="g-hub" cx="100" cy="100" r="7"/>
+            </svg>
+            <div class="g-readout"><span class="g-val">0</span><small>RPM</small></div>
+            <div class="g-name">Engine Speed</div>
+          </div>
+          <div class="gauge-card" data-gauge="VSS">
+            <svg class="gauge-svg" viewBox="0 0 200 118">
+              <g class="g-ticks"></g>
+              <path class="g-track" d="M 20 100 A 80 80 0 0 1 180 100"/>
+              <path class="g-arc" d="M 20 100 A 80 80 0 0 1 180 100"/>
+              <line class="g-needle" x1="100" y1="100" x2="100" y2="34"/>
+              <circle class="g-hub" cx="100" cy="100" r="7"/>
+            </svg>
+            <div class="g-readout"><span class="g-val">0</span><small>km/h</small></div>
+            <div class="g-name">Vehicle Speed</div>
+          </div>
+          <div class="gauge-card" data-gauge="LOAD_PCT">
+            <svg class="gauge-svg" viewBox="0 0 200 118">
+              <g class="g-ticks"></g>
+              <path class="g-track" d="M 20 100 A 80 80 0 0 1 180 100"/>
+              <path class="g-arc" d="M 20 100 A 80 80 0 0 1 180 100"/>
+              <line class="g-needle" x1="100" y1="100" x2="100" y2="34"/>
+              <circle class="g-hub" cx="100" cy="100" r="7"/>
+            </svg>
+            <div class="g-readout"><span class="g-val">0</span><small>%</small></div>
+            <div class="g-name">Engine Load</div>
+          </div>
+          <div class="gauge-card" data-gauge="ECT">
+            <svg class="gauge-svg" viewBox="0 0 200 118">
+              <g class="g-ticks"></g>
+              <path class="g-track" d="M 20 100 A 80 80 0 0 1 180 100"/>
+              <path class="g-arc" d="M 20 100 A 80 80 0 0 1 180 100"/>
+              <line class="g-needle" x1="100" y1="100" x2="100" y2="34"/>
+              <circle class="g-hub" cx="100" cy="100" r="7"/>
+            </svg>
+            <div class="g-readout"><span class="g-val">0</span><small>°C</small></div>
+            <div class="g-name">Coolant Temp</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DIAGNOSTICS + AI -->
+      <section class="section" id="diagnostics">
+        <div class="section-header">
+          <h2 class="section-title"><span>02</span> — Diagnostic Workspace</h2>
+        </div>
+        <div class="workspace">
+          <!-- Input Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Sensor Input</h3>
+            </div>
+            <div class="panel-body">
+              <div class="mode-group" role="group" aria-label="Operating Mode">
+                <button type="button" class="mode-btn active" data-mode="0">
+                  Idle
+                  <span class="mode-id">Mode 0</span>
+                </button>
+                <button type="button" class="mode-btn" data-mode="1">
+                  Cruise
+                  <span class="mode-id">Mode 1</span>
+                </button>
+                <button type="button" class="mode-btn" data-mode="2">
+                  High Load
+                  <span class="mode-id">Mode 2</span>
+                </button>
+              </div>
+
+              <form id="diagForm" novalidate>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label>Engine Load <span class="feature-tag">LOAD_PCT</span></label>
+                    <input type="number" name="LOAD_PCT" id="inp-LOAD_PCT" step="any" required placeholder="0–100">
+                  </div>
+                  <div class="form-group">
+                    <label>Coolant Temp <span class="feature-tag">ECT</span></label>
+                    <input type="number" name="ECT" id="inp-ECT" step="any" required placeholder="°C">
+                  </div>
+                  <div class="form-group">
+                    <label>Manifold Pressure <span class="feature-tag">MAP</span></label>
+                    <input type="number" name="MAP" id="inp-MAP" step="any" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Engine Speed <span class="feature-tag">RPM</span></label>
+                    <input type="number" name="RPM" id="inp-RPM" step="any" required placeholder="RPM">
+                  </div>
+                  <div class="form-group">
+                    <label>Vehicle Speed <span class="feature-tag">VSS</span></label>
+                    <input type="number" name="VSS" id="inp-VSS" step="any" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Intake Air Temp <span class="feature-tag">IAT</span></label>
+                    <input type="number" name="IAT" id="inp-IAT" step="any" required placeholder="°C">
+                  </div>
+                  <div class="form-group">
+                    <label>Mass Air Flow <span class="feature-tag">MAF</span></label>
+                    <input type="number" name="MAF" id="inp-MAF" step="any" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Fuel Rail Pressure <span class="feature-tag">FRP</span></label>
+                    <input type="number" name="FRP" id="inp-FRP" step="any" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Barometric Pressure <span class="feature-tag">BARO</span></label>
+                    <input type="number" name="BARO" id="inp-BARO" step="any" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Module Voltage <span class="feature-tag">VPWR</span></label>
+                    <input type="number" name="VPWR" id="inp-VPWR" step="any" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Ambient Air Temp <span class="feature-tag">AAT</span></label>
+                    <input type="number" name="AAT" id="inp-AAT" step="any" required placeholder="°C">
+                  </div>
+                  <div class="form-group">
+                    <label>Operating Mode <span class="feature-tag">Mode</span></label>
+                    <input type="number" name="Mode" id="inp-Mode" value="0" min="0" max="2" required readonly style="opacity:0.7;cursor:default">
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <select class="preset-select" id="presetSelect" aria-label="Load example preset">
+                    <option value="">Example Presets…</option>
+                    <option value="idle">Idle Example</option>
+                    <option value="cruise">Cruise Example</option>
+                    <option value="high">High Load Example</option>
+                  </select>
+                  <select class="preset-select fault-select" id="faultSelect" aria-label="Inject a fault">
+                    <option value="">Inject Fault…</option>
+                    <option value="overheat">Engine Overheating</option>
+                    <option value="fuel">Fuel Pressure Drop</option>
+                    <option value="voltage">Low Battery Voltage</option>
+                    <option value="vacuum">Vacuum Leak</option>
+                    <option value="maf">Faulty MAF Sensor</option>
+                  </select>
+                  <button type="submit" class="btn btn-primary" id="submitBtn">
+                    Run Diagnostic Scan
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- AI Result Panel -->
+          <div class="panel result-panel" id="analysis">
+            <div class="panel-header">
+              <h3>AI Assessment</h3>
+            </div>
+            <div class="result-state ready" id="resultState">
+              <div class="result-icon">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+              </div>
+              <div class="result-title">Ready to Analyze</div>
+              <p class="result-desc">Enter sensor values and initialize a diagnostic scan.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- HISTORY -->
+      <section class="section" id="history">
+        <div class="section-header">
+          <h2 class="section-title"><span>03</span> — Recent Scan History</h2>
+        </div>
+        <div id="historyContainer">
+          <div class="empty-state">No scans performed in this session. Results will appear here after a diagnostic request.</div>
+        </div>
+      </section>
+
+      <div class="disclaimer">
+        <strong>Interpretation note:</strong> NEXDRIVE uses a mode-aware Isolation Forest model. An anomaly indicates a sensor pattern that differs from the learned baseline for the selected operating mode — it does not confirm a specific mechanical fault. Values shown are user-supplied or dataset-derived inputs, not live OBD-II readings from a physical vehicle.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ─── CONFIG ───
+  // Adjust this if your FastAPI prediction route differs
+  const API_BASE = window.location.origin;
+  const PREDICT_PATH = '/predict';          // change to '/api/predict' etc. if needed
+  const HEALTH_PATH = '/docs';            // used only for reachability check
+
+  // Feature order matching typical model training
+  const FEATURES = [
+    'LOAD_PCT', 'ECT', 'MAP', 'RPM', 'VSS',
+    'IAT', 'MAF', 'FRP', 'BARO', 'VPWR', 'AAT', 'Mode'
+  ];
+
+  // Example presets (labelled as examples — adjust ranges after inspecting your dataset)
+  const PRESETS = {
+    idle: {
+      LOAD_PCT: 18, ECT: 88, MAP: 32, RPM: 780, VSS: 0,
+      IAT: 28, MAF: 3.2, FRP: 380, BARO: 99, VPWR: 13.8, AAT: 24, Mode: 0
+    },
+    cruise: {
+      LOAD_PCT: 42, ECT: 92, MAP: 55, RPM: 2100, VSS: 72,
+      IAT: 31, MAF: 12.5, FRP: 420, BARO: 99, VPWR: 14.1, AAT: 26, Mode: 1
+    },
+    high: {
+      LOAD_PCT: 78, ECT: 98, MAP: 95, RPM: 4800, VSS: 110,
+      IAT: 38, MAF: 28.0, FRP: 510, BARO: 98, VPWR: 13.9, AAT: 29, Mode: 2
+    }
+  };
+
+  // ─── STATE ───
+  let isSubmitting = false;
+  let scanHistory = [];
+
+  // ─── DOM REFS ───
+  const form = document.getElementById('diagForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const resultState = document.getElementById('resultState');
+  const historyContainer = document.getElementById('historyContainer');
+  const presetSelect = document.getElementById('presetSelect');
+  const apiDot = document.getElementById('apiDot');
+  const apiLabel = document.getElementById('apiLabel');
+  const clockEl = document.getElementById('clock');
+
+  // ─── CLOCK ───
+  function updateClock() {
+    const now = new Date();
+    const date = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    clockEl.textContent = `${date}  ·  ${time}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ─── API HEALTH ───
+  async function checkApi() {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 3500);
+      const res = await fetch(API_BASE + HEALTH_PATH, { method: 'GET', signal: ctrl.signal });
+      clearTimeout(t);
+      // Any response (even 404) means the server is reachable
+      setApiStatus(true);
+    } catch {
+      setApiStatus(false);
+    }
+  }
+
+  function setApiStatus(ok) {
+    apiDot.className = 'api-dot ' + (ok ? 'connected' : 'disconnected');
+    apiLabel.textContent = ok ? 'API Reachable' : 'API Unavailable';
+  }
+
+  checkApi();
+  setInterval(checkApi, 30000);
+
+  // ─── MODE SELECTOR ───
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mode = parseInt(btn.dataset.mode, 10);
+      document.getElementById('inp-Mode').value = mode;
+    });
+  });
+
+  // ─── PRESETS ───
+  presetSelect.addEventListener('change', () => {
+    const key = presetSelect.value;
+    if (!key || !PRESETS[key]) return;
+    const p = PRESETS[key];
+    FEATURES.forEach(f => {
+      const el = document.getElementById('inp-' + f);
+      if (el) el.value = p[f];
+    });
+    // Sync mode buttons
+    document.querySelectorAll('.mode-btn').forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.mode, 10) === p.Mode);
+    });
+    updateTelemetry();
+    presetSelect.value = '';
+  });
+
+  // ─── FAULT SIMULATOR ───
+  // Each fault overrides a few sensors on top of the current readings, then runs a scan.
+  const FAULTS = {
+    overheat: { ECT: 128, IAT: 55 },
+    fuel:     { FRP: 120 },
+    voltage:  { VPWR: 9.1 },
+    vacuum:   { MAP: 88, MAF: 1.1 },
+    maf:      { MAF: 0.2 }
+  };
+  const faultSelect = document.getElementById('faultSelect');
+
+  faultSelect.addEventListener('change', () => {
+    const key = faultSelect.value;
+    if (!key || !FAULTS[key]) return;
+    Object.entries(FAULTS[key]).forEach(([f, v]) => {
+      const el = document.getElementById('inp-' + f);
+      if (!el) return;
+      el.value = v;
+      el.classList.remove('fault-changed');
+      void el.offsetWidth;               // restart animation
+      el.classList.add('fault-changed');
+      setTimeout(() => el.classList.remove('fault-changed'), 2000);
+    });
+    updateTelemetry();
+    faultSelect.value = '';
+    form.requestSubmit();                // auto-run the scan
+  });
+
+  // ─── TELEMETRY LIVE UPDATE ───
+  const teleMap = { RPM: 'tele-RPM', VSS: 'tele-VSS', LOAD_PCT: 'tele-LOAD_PCT', ECT: 'tele-ECT' };
+
+  // ─── LIVE GAUGE CLUSTER ───
+  const GAUGES = {
+    RPM:      { min: 0,  max: 8000, warn: 0.75, crit: 0.9 },
+    VSS:      { min: 0,  max: 240,  warn: 0.75, crit: 0.92 },
+    LOAD_PCT: { min: 0,  max: 100,  warn: 0.75, crit: 0.9 },
+    ECT:      { min: 40, max: 140,  warn: 0.78, crit: 0.88 }
+  };
+  const ARC_LEN = 251.33;
+  document.querySelectorAll('.gauge-card').forEach(card => {
+    const g = card.querySelector('.g-ticks');
+    for (let i = 0; i <= 10; i++) {
+      const a = Math.PI * (1 - i / 10);
+      const r1 = 92, r2 = i % 5 === 0 ? 84 : 88;
+      const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      ln.setAttribute('class', 'g-tick');
+      ln.setAttribute('x1', 100 + r1 * Math.cos(a)); ln.setAttribute('y1', 100 - r1 * Math.sin(a));
+      ln.setAttribute('x2', 100 + r2 * Math.cos(a)); ln.setAttribute('y2', 100 - r2 * Math.sin(a));
+      g.appendChild(ln);
+    }
+  });
+  function updateGauges() {
+    document.querySelectorAll('.gauge-card').forEach(card => {
+      const key = card.dataset.gauge, cfg = GAUGES[key];
+      const inp = document.getElementById('inp-' + key);
+      const v = inp ? parseFloat(inp.value) : NaN;
+      if (isNaN(v)) return;
+      const frac = Math.max(0, Math.min(1, (v - cfg.min) / (cfg.max - cfg.min)));
+      const col = frac >= cfg.crit ? '#FF5C70' : frac >= cfg.warn ? '#E8B66A' : '#54E8F2';
+      card.style.setProperty('--gcol', col);
+      card.style.setProperty('--gc', col + '24');
+      card.querySelector('.g-arc').style.strokeDashoffset = ARC_LEN * (1 - frac);
+      card.querySelector('.g-needle').style.transform = 'rotate(' + (-90 + frac * 180) + 'deg)';
+      card.querySelector('.g-val').textContent = Number.isInteger(v) ? v : v.toFixed(1);
+    });
+  }
+  setTimeout(updateGauges, 150);
+
+  function updateTelemetry() {
+    updateGauges();
+    Object.keys(teleMap).forEach(f => {
+      const inp = document.getElementById('inp-' + f);
+      const el = document.getElementById(teleMap[f]);
+      if (inp && el) {
+        const v = parseFloat(inp.value);
+        el.textContent = isNaN(v) ? '—' : (Number.isInteger(v) ? v : v.toFixed(1));
+      }
+    });
+  }
+
+  FEATURES.forEach(f => {
+    const el = document.getElementById('inp-' + f);
+    if (el) el.addEventListener('input', updateTelemetry);
+  });
+
+  // Load idle preset as starting point
+  Object.entries(PRESETS.idle).forEach(([k, v]) => {
+    const el = document.getElementById('inp-' + k);
+    if (el) el.value = v;
+  });
+  updateTelemetry();
+
+  // ─── FORM SUBMIT ───
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    // Validate
+    const payload = {};
+    let valid = true;
+    FEATURES.forEach(f => {
+      const el = document.getElementById('inp-' + f);
+      if (!el || el.value === '' || isNaN(parseFloat(el.value))) {
+        valid = false;
+        if (el) el.style.borderColor = 'var(--red)';
+      } else {
+        payload[f] = parseFloat(el.value);
+        el.style.borderColor = '';
+      }
+    });
+
+    if (!valid) {
+      showResult('error', 'Invalid Input', 'All sensor fields require valid numeric values.');
+      return;
+    }
+
+    isSubmitting = true;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Scanning…';
+    showLoading();
+
+    const startTs = new Date();
+
+    try {
+      const res = await fetch(API_BASE + PREDICT_PATH, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ ...payload, mode: payload.Mode })
+      });
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error('Non-JSON response from server');
+      }
+
+      if (!res.ok) {
+        const detail = data.detail || data.message || res.statusText || 'Request failed';
+        throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+      }
+
+      // Map common Isolation Forest response shapes
+      // Typical: prediction / label / is_anomaly / anomaly  →  -1 or 1  (or true/false)
+      // score / anomaly_score / decision_function
+      let isAnomaly = false;
+      let score = null;
+
+      if ('prediction' in data) {
+        isAnomaly = data.prediction === -1 || data.prediction === 0 || data.prediction === false;
+      } else if ('label' in data) {
+        isAnomaly = data.label === -1 || data.label === 0 || data.label === 'anomaly';
+      } else if ('is_anomaly' in data) {
+        isAnomaly = !!data.is_anomaly;
+      } else if ('anomaly' in data) {
+        isAnomaly = !!data.anomaly;
+      }
+
+      if ('score' in data) score = data.score;
+      else if ('anomaly_score' in data) score = data.anomaly_score;
+      else if ('decision_function' in data) score = data.decision_function;
+
+      if (isAnomaly) {
+        showResult('anomaly', 'Anomaly Detected',
+          'The model identified a sensor pattern that differs from its learned baseline for the selected operating mode.',
+          { mode: payload.Mode, score, raw: data });
+      } else {
+        showResult('normal', 'Pattern Within Baseline',
+          'The model classified this sensor pattern as consistent with its learned baseline.',
+          { mode: payload.Mode, score, raw: data });
+      }
+
+      addHistory({
+        ts: startTs,
+        mode: payload.Mode,
+        classification: isAnomaly ? 'anomaly' : 'normal',
+        score,
+        success: true
+      });
+
+    } catch (err) {
+      showResult('error', 'Analysis Unavailable',
+        err.message || 'Unable to complete the diagnostic request. Check the API connection and request details.');
+      addHistory({
+        ts: startTs,
+        mode: payload.Mode,
+        classification: 'fail',
+        score: null,
+        success: false
+      });
+    } finally {
+      isSubmitting = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Run Diagnostic Scan';
+    }
+  });
+
+  // ─── RESULT UI ───
+  function showLoading() {
+    resultState.className = 'result-state ready';
+    resultState.innerHTML = `
+      <div class="loading-spinner"></div>
+      <div class="result-title">Analyzing…</div>
+      <p class="result-desc">Sending sensor vector to local Isolation Forest model.</p>
+    `;
+  }
+
+  function showResult(type, title, desc, meta) {
+    resultState.className = 'result-state ' + type;
+
+    let iconSvg = '';
+    if (type === 'normal') {
+      iconSvg = '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+    } else if (type === 'anomaly') {
+      iconSvg = '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    } else {
+      iconSvg = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    }
+
+    let metaHtml = '';
+    if (meta) {
+      const modeNames = ['Idle', 'Cruise', 'High Load'];
+      metaHtml = `<div class="result-meta">
+        <div class="row"><span>Operating Mode</span><span>${modeNames[meta.mode] || meta.mode}</span></div>
+        ${meta.score != null ? `<div class="row"><span>Anomaly Score</span><span>${typeof meta.score === 'number' ? meta.score.toFixed(4) : meta.score}</span></div>` : ''}
+        <div class="row"><span>Model</span><span>Isolation Forest</span></div>
+      </div>`;
+    }
+
+    resultState.innerHTML = `
+      <div class="result-icon">${iconSvg}</div>
+      <div class="result-title">${escapeHtml(title)}</div>
+      <p class="result-desc">${escapeHtml(desc)}</p>
+      ${metaHtml}
+    `;
+  }
+
+  // ─── HISTORY ───
+  function addHistory(entry) {
+    scanHistory.unshift(entry);
+    if (scanHistory.length > 5) scanHistory.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    if (!scanHistory.length) {
+      historyContainer.innerHTML = '<div class="empty-state">No scans performed in this session. Results will appear here after a diagnostic request.</div>';
+      return;
+    }
+
+    const modeNames = ['Idle', 'Cruise', 'High Load'];
+    historyContainer.innerHTML = '<div class="history-list">' + scanHistory.map(h => {
+      const ts = h.ts.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const cls = h.classification;
+      const label = cls === 'anomaly' ? 'ANOMALY' : cls === 'normal' ? 'BASELINE' : 'FAILED';
+      const scoreStr = h.score != null ? (typeof h.score === 'number' ? h.score.toFixed(4) : h.score) : '—';
+      return `<div class="history-item">
+        <span class="ts">${ts}</span>
+        <span class="mode-badge">${modeNames[h.mode] || 'Mode ' + h.mode}</span>
+        <span class="classification ${cls}">${label}</span>
+        <span class="score">${scoreStr}</span>
+      </div>`;
+    }).join('') + '</div>';
+  }
+
+  // ─── NAV ACTIVE STATE ───
+  const sections = document.querySelectorAll('section[id], #overview');
+  const navLinks = document.querySelectorAll('.nav a');
+
+  function setActiveNav() {
+    let current = 'overview';
+    const scrollY = window.scrollY + 120;
+    document.querySelectorAll('#overview, #telemetry, #diagnostics, #analysis, #history').forEach(sec => {
+      if (sec.offsetTop <= scrollY) current = sec.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.dataset.section === current || (current === 'analysis' && a.dataset.section === 'diagnostics'));
+    });
+  }
+  window.addEventListener('scroll', setActiveNav, { passive: true });
+
+  // ─── MOBILE MENU ───
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const menuToggle = document.getElementById('menuToggle');
+
+  menuToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('show');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  });
+  navLinks.forEach(a => a.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  }));
+
+  // ─── UTILS ───
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+})();
+</script>
+</body>
+</html>
